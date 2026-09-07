@@ -1,15 +1,5 @@
 services:
   - type: web
-    name: tall-twin-job-applier-personal
-    env: docker
-    dockerfilePath: Dockerfile
-    plan: free
-    region: oregon
-    envVars:
-      - key: GEMINI_API_KEY
-        sync: false
-
-  - type: web
     name: tall-twin-job-applier-public
     env: docker
     dockerfilePath: Dockerfile
