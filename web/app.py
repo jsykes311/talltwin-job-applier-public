@@ -27,15 +27,38 @@ db = Database()
 criteria = load_json(CRITERIA_PATH)
 profile = load_json(PROFILE_PATH)
 
+if "light_mode" not in st.session_state:
+    st.session_state.light_mode = False
+with st.sidebar:
+    st.markdown("<div class='brand-mark'>TALL TWIN<span>JOB FINDER</span></div>", unsafe_allow_html=True)
+    st.toggle("Light mode", key="light_mode", help="Switch between the midnight command center and the clear light workflow.")
+
+def apply_theme(light_mode: bool):
+    if light_mode:
+        c = {"bg":"#f7f9fc","surface":"#ffffff","surface2":"#f0f5ff","ink":"#14213d","muted":"#64748b","line":"#dbe4f0","accent":"#1769ff","accent2":"#0f4fc8"}
+    else:
+        c = {"bg":"#050b1d","surface":"#0b1631","surface2":"#101f42","ink":"#f7f9ff","muted":"#aebbd4","line":"#233761","accent":"#2b7cff","accent2":"#1262e8"}
+    st.markdown(f"""<style>
+    :root{{--tt-bg:{c['bg']};--tt-surface:{c['surface']};--tt-surface2:{c['surface2']};--tt-ink:{c['ink']};--tt-muted:{c['muted']};--tt-line:{c['line']};--tt-accent:{c['accent']};--tt-accent2:{c['accent2']};}}
+    .stApp,[data-testid="stAppViewContainer"]>.main{{background:var(--tt-bg);color:var(--tt-ink)}} [data-testid="stHeader"],[data-testid="stToolbar"]{{background:transparent}} [data-testid="stSidebar"]{{background:var(--tt-surface);border-right:1px solid var(--tt-line)}} [data-testid="stSidebar"] *{{color:var(--tt-ink)}}
+    .brand-mark{{margin:.65rem .3rem 1.8rem;font-weight:800;letter-spacing:.14em;font-size:1.15rem;color:var(--tt-ink)}}.brand-mark:before{{content:'◆';color:var(--tt-accent);margin-right:.5rem;font-size:1.4rem}}.brand-mark span{{display:block;margin:.25rem 0 0 1.85rem;letter-spacing:.11em;color:var(--tt-muted);font-size:.58rem;font-weight:700}}
+    .block-container{{max-width:1440px;padding-top:3.4rem;padding-bottom:3rem}}h1,h2,h3,p,label,[data-testid="stMetricLabel"],[data-testid="stMetricValue"]{{color:var(--tt-ink)!important}}h1{{font-size:clamp(2.5rem,4.4vw,4.25rem)!important;line-height:1.04!important;letter-spacing:-.055em!important;max-width:850px;margin-bottom:.7rem!important}}h2,h3{{letter-spacing:-.025em!important}}.stCaption,[data-testid="stCaptionContainer"]{{color:var(--tt-muted)!important;font-size:1rem!important}}
+    [data-testid="stVerticalBlockBorderWrapper"]{{background:var(--tt-surface)!important;border:1px solid var(--tt-line)!important;border-radius:18px!important;box-shadow:none!important}}[data-testid="stMetric"]{{padding:.8rem 0;border-bottom:1px solid var(--tt-line)}}[data-testid="stMetric"]:last-child{{border-bottom:0}}[data-testid="stMetricValue"]{{font-size:2.15rem!important;letter-spacing:-.055em}}[data-testid="stMetricLabel"]{{color:var(--tt-muted)!important;font-size:.82rem!important;text-transform:uppercase;letter-spacing:.08em}}
+    .stButton>button{{border-radius:10px!important;border:1px solid var(--tt-line)!important;background:transparent!important;color:var(--tt-ink)!important;font-weight:650!important;min-height:2.85rem;transition:all .16s ease}}.stButton>button:hover{{border-color:var(--tt-accent)!important;color:var(--tt-accent)!important;transform:translateY(-1px)}}.stButton>button[kind="primary"]{{background:var(--tt-accent)!important;border-color:var(--tt-accent)!important;color:white!important;box-shadow:0 10px 28px rgba(23,105,255,.22)}}.stButton>button[kind="primary"]:hover{{background:var(--tt-accent2)!important;color:white!important}}
+    [data-baseweb="input"]>div,[data-baseweb="select"]>div{{background:var(--tt-surface2)!important;border-color:var(--tt-line)!important;color:var(--tt-ink)!important;border-radius:10px!important}}input,textarea{{color:var(--tt-ink)!important}}[data-baseweb="tab-list"]{{gap:1.5rem;border-bottom:1px solid var(--tt-line)}}button[data-baseweb="tab"]{{color:var(--tt-muted)!important;font-weight:700;padding:.7rem .1rem!important}}button[data-baseweb="tab"][aria-selected="true"]{{color:var(--tt-accent)!important;border-bottom-color:var(--tt-accent)!important}}[data-testid="stAlert"]{{background:var(--tt-surface2)!important;border:1px solid var(--tt-line)!important;color:var(--tt-ink)!important;border-radius:12px!important}}[data-testid="stDataFrame"]{{border:1px solid var(--tt-line);border-radius:14px;overflow:hidden}}hr{{border-color:var(--tt-line)!important}}@media(max-width:768px){{.block-container{{padding:1.5rem 1rem 2rem}}h1{{font-size:2.45rem!important}}}}
+    </style>""", unsafe_allow_html=True)
+apply_theme(st.session_state.light_mode)
+
 # Hero Header
-st.title("Find your next job — one clear step at a time")
-st.caption("Set up your search, find matches, then review every application before it is submitted.")
+st.markdown("<div class='eyebrow'>WELCOME TO TALL TWIN</div>", unsafe_allow_html=True)
+st.title("Find roles worth your time.")
+st.caption("Tell Tall Twin what you want, review every match, and only count a submission when the employer confirms it.")
 
 with st.container(border=True):
     step_1, step_2, step_3 = st.columns(3)
-    step_1.markdown("### 1. Set up\nAdd your target role and resume.")
-    step_2.markdown("### 2. Find matches\nWe find and score jobs for you.")
-    step_3.markdown("### 3. Review & apply\nYou check each application first.")
+    step_1.markdown("### 1. Discover\nTell us what you want.")
+    step_2.markdown("### 2. Match\nWe surface the best fits.")
+    step_3.markdown("### 3. Confirm\nYou stay in control.")
 
 st.warning(
     "**Demo-mode privacy notice:** this public preview does not yet create private user accounts. "
@@ -44,11 +67,11 @@ st.warning(
 
 # Top One-Touch Action Banner
 with st.container(border=True):
-    st.subheader("Ready to apply? Start safely")
+    st.subheader("Find roles worth your time")
     c1, c2, c3 = st.columns([2, 1, 1])
     
     with c1:
-        st.markdown("Choose **Review before submit** for your first run. You stay in control of every application.")
+        st.markdown("Choose **Review before submit** for your first run. Real opportunities, clear status, no fake submission claims.")
         one_touch_mode = st.radio(
             "How should applications be handled?",
             ["review", "dry_run", "autonomous"],
@@ -65,7 +88,7 @@ with st.container(border=True):
     with c3:
         min_match = st.number_input("Only include matches above", min_value=0, max_value=100, value=70)
 
-    run_btn = st.button("Start my guided application review", type="primary", use_container_width=True)
+    run_btn = st.button("Find verified jobs", type="primary", use_container_width=True)
 
     if run_btn:
         progress_bar = st.progress(0.0)
