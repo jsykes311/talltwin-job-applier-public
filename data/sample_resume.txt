@@ -1,0 +1,25 @@
+JANE DOE
+Software Engineer | Full Stack Developer
+San Francisco, CA | jane.doe.example@gmail.com | (555) 123-4567 | github.com/janedoe-example
+
+SUMMARY
+Experienced Full Stack Engineer with 4+ years of experience in designing, building, and deploying scalable web applications, RESTful microservices, and database systems. Proficient in Python, JavaScript/TypeScript, React, Node.js, and SQL.
+
+TECHNICAL SKILLS
+- Languages: Python, JavaScript, TypeScript, HTML/CSS, SQL
+- Frameworks & Libraries: React, Node.js, FastAPI, Flask, Express, Tailwind CSS
+- Databases: PostgreSQL, SQLite, MongoDB, Redis
+- Automation & Tools: Playwright, Selenium, Docker, Git, Linux, CI/CD pipelines, REST APIs
+
+PROFESSIONAL EXPERIENCE
+Software Engineer | Acme Corp (2022 - Present)
+- Developed and maintained microservices using Python (FastAPI) and React, improving system uptime to 99.9%.
+- Built automated data ingestion and web scraping pipelines processing 100k+ daily records.
+- Collaborated with product teams to design RESTful APIs and UI components.
+
+Associate Developer | Tech Solutions Inc. (2020 - 2022)
+- Built responsive UI components using React and Redux for e-commerce platforms.
+- Wrote automated test suites and reduced production bugs by 35%.
+
+EDUCATION
+B.S. in Computer Science | University of California, Berkeley (2016 - 2020)

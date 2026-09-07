@@ -1,0 +1,16 @@
+{
+  "job_titles": [
+    "Software Engineer",
+    "Product Manager",
+    "Data Scientist"
+  ],
+  "locations": [
+    "Remote",
+    "United States"
+  ],
+  "remote_only": true,
+  "min_salary": 90000,
+  "match_score_threshold": 70,
+  "keywords_include": ["Python", "JavaScript", "SQL"],
+  "keywords_exclude": ["Director", "Executive"]
+}

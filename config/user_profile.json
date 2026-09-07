@@ -1,0 +1,24 @@
+{
+  "first_name": "First",
+  "last_name": "Last",
+  "email": "candidate@example.com",
+  "phone": "+1-555-000-0000",
+  "location": "City, State",
+  "linkedin_url": "https://linkedin.com/in/candidate",
+  "github_url": "https://github.com/candidate",
+  "portfolio_url": "https://candidate.example.com",
+  "summary": "Please upload your resume to auto-populate your background summary.",
+  "work_authorization": "Authorized to work in US without sponsorship",
+  "requires_sponsorship": "No",
+  "gender": "Decline to self-identify",
+  "race": "Decline to self-identify",
+  "veteran_status": "No",
+  "disability_status": "No",
+  "resume_path": "data/sample_resume.txt",
+  "desired_salary": "$100,000+",
+  "answers_templates": {
+    "why_us": "I am excited about your mission and technical stack.",
+    "years_experience": "3",
+    "notice_period": "2 weeks"
+  }
+}
