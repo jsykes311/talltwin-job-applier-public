@@ -55,8 +55,11 @@ class LeverApplier(BaseApplier):
                     try:
                         placeholder = area.get_attribute("placeholder") or "custom question"
                         answer = self.answer_gen.generate_answer(placeholder, job["title"], job["company"], job.get("description", ""))
-                        area.fill(answer)
-                        self.db.log_step(job_id, "QUESTION_ANSWERED", f"Question: '{placeholder}' -> Answered")
+                        if answer:
+                            area.fill(answer)
+                            self.db.log_step(job_id, "QUESTION_ANSWERED", f"Question: '{placeholder}' -> Answered")
+                        else:
+                            self.db.log_step(job_id, "MANUAL_REVIEW_REQUIRED", f"Question: '{placeholder}' needs your answer.", log_level="WARNING")
                     except Exception:
                         pass
 

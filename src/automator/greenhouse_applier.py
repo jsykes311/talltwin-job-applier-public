@@ -58,8 +58,11 @@ class GreenhouseApplier(BaseApplier):
                         label_elem = page.query_selector(f"label[for='{area.get_attribute('id')}']")
                         label_text = label_elem.inner_text() if label_elem else "custom question"
                         answer = self.answer_gen.generate_answer(label_text, job["title"], job["company"], job.get("description", ""))
-                        area.fill(answer)
-                        self.db.log_step(job_id, "QUESTION_ANSWERED", f"Question: '{label_text}' -> Answered")
+                        if answer:
+                            area.fill(answer)
+                            self.db.log_step(job_id, "QUESTION_ANSWERED", f"Question: '{label_text}' -> Answered")
+                        else:
+                            self.db.log_step(job_id, "MANUAL_REVIEW_REQUIRED", f"Question: '{label_text}' needs your answer.", log_level="WARNING")
                     except Exception as e:
                         pass
 

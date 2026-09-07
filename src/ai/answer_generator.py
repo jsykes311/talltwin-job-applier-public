@@ -15,9 +15,9 @@ class AnswerGenerator:
 
         # Check direct template mappings
         templates = self.user_profile.get("answers_templates", {})
-        if "why" in q_lower and "us" in q_lower and "why_us" in templates:
+        if ("why" in q_lower and ("us" in q_lower or "company" in q_lower or "role" in q_lower)) and templates.get("why_us"):
             return templates["why_us"]
-        if "years" in q_lower and "experience" in q_lower and "years_experience" in templates:
+        if "years" in q_lower and "experience" in q_lower and templates.get("years_experience"):
             return templates["years_experience"]
         if "salary" in q_lower or "compensation" in q_lower:
             return self.user_profile.get("desired_salary", "$120,000")
@@ -49,12 +49,16 @@ class AnswerGenerator:
                 print(f"Gemini API answer generation fallback: {e}")
 
         # Basic fallback answers based on question intent
-        if "sponsorship" in q_lower:
+        if "sponsorship" in q_lower or "visa" in q_lower:
             return self.user_profile.get("requires_sponsorship", "No")
         if "authorized" in q_lower or "work in" in q_lower:
             return self.user_profile.get("work_authorization", "Yes")
-        if "notice" in q_lower:
+        if "notice" in q_lower or "start date" in q_lower or "availability" in q_lower:
             return templates.get("notice_period", "2 weeks")
+        if "relocat" in q_lower:
+            return templates.get("relocation", "Open to discuss")
+        if any(topic in q_lower for topic in ("gender", "race", "ethnicity", "disability", "veteran", "criminal", "conviction", "ssn", "social security")):
+            return ""
 
         # Generic summary fallback
-        return f"I have {templates.get('years_experience', '4')} years of software engineering experience relevant to {job_title} at {company}."
+        return ""

@@ -152,7 +152,7 @@ tab_setup, tab_jobs, tab_activity = st.tabs(["1. Set up my search", "2. Find job
 
 with tab_jobs:
     st.subheader("Your job matches")
-    st.caption("First click **Find jobs**, then **Score my matches** in the sidebar.")
+    st.caption("Review the role and open its official application before you submit anything.")
     col1, col2 = st.columns(2)
     with col1:
         status_filter = st.selectbox("Status Filter", ["ALL", "DISCOVERED", "MATCHED", "REVIEW_READY", "SUBMISSION_UNCONFIRMED", "APPLIED", "REJECTED", "FAILED"])
@@ -165,6 +165,18 @@ with tab_jobs:
     if not jobs:
         st.info("No jobs found matching the selected filters.")
     else:
+        review_jobs = [j for j in jobs if j["status"] in ("MATCHED", "REVIEW_READY", "SUBMISSION_UNCONFIRMED")]
+        if review_jobs:
+            st.markdown("#### Your review queue")
+            for job in review_jobs[:5]:
+                with st.container(border=True):
+                    queue_main, queue_action = st.columns([5, 1])
+                    with queue_main:
+                        st.markdown(f"**{job['title']}** · {job['company']}  ")
+                        st.caption(f"{job['status'].replace('_', ' ').title()} · {job['match_score']:.0f}% match · {job['match_reason'] or 'Review the job details before applying.'}")
+                    with queue_action:
+                        st.link_button("Open role", job["url"], use_container_width=True)
+        st.markdown("#### All roles")
         st.dataframe(
             [{
                 "ID": j["id"],
