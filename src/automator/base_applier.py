@@ -16,7 +16,9 @@ class BaseApplier(ABC):
         self.user_profile = user_profile
         self.db = db
         self.mode = mode
-        self.headless = headless if mode != "review" else False
+        # Render is a server without a desktop/X server. Review mode records a
+        # review-ready application and must not try to open a visible browser.
+        self.headless = headless
         self.answer_gen = AnswerGenerator(user_profile)
         self.screenshot_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "screenshots")
         os.makedirs(self.screenshot_dir, exist_ok=True)
