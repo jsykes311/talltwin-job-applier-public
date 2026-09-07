@@ -18,7 +18,7 @@ PROFILES_DIR = os.path.join(BASE_DIR, "config", "profiles")
 os.makedirs(PROFILES_DIR, exist_ok=True)
 
 st.set_page_config(
-    page_title="Universal One-Touch Job Applier",
+    page_title="Tall Twin Job Finder",
     page_icon="⚡",
     layout="wide"
 )
@@ -28,28 +28,44 @@ criteria = load_json(CRITERIA_PATH)
 profile = load_json(PROFILE_PATH)
 
 # Hero Header
-st.title("⚡ Universal One-Touch Job Applier")
-st.caption("Customized job application engine for any candidate, job title, salary, or resume.")
+st.title("Find your next job — one clear step at a time")
+st.caption("Set up your search, find matches, then review every application before it is submitted.")
+
+with st.container(border=True):
+    step_1, step_2, step_3 = st.columns(3)
+    step_1.markdown("### 1. Set up\nAdd your target role and resume.")
+    step_2.markdown("### 2. Find matches\nWe find and score jobs for you.")
+    step_3.markdown("### 3. Review & apply\nYou check each application first.")
+
+st.warning(
+    "**Demo-mode privacy notice:** this public preview does not yet create private user accounts. "
+    "Do not upload a real resume or sensitive contact details here."
+)
 
 # Top One-Touch Action Banner
 with st.container(border=True):
-    st.subheader("⚡ One-Touch Action Center")
+    st.subheader("Ready to apply? Start safely")
     c1, c2, c3 = st.columns([2, 1, 1])
     
     with c1:
-        st.markdown(f"**Candidate:** `{profile.get('first_name', 'User')} {profile.get('last_name', '')}` (`{profile.get('email', 'No email')}`)")
+        st.markdown("Choose **Review before submit** for your first run. You stay in control of every application.")
         one_touch_mode = st.radio(
-            "Execution Safety Mode",
-            ["dry_run", "review", "autonomous"],
-            captions=["Fills forms & takes screenshots (No submit)", "Opens browser & pauses for review", "Fills forms & SUBMITS automatically"],
+            "How should applications be handled?",
+            ["review", "dry_run", "autonomous"],
+            format_func=lambda mode: {
+                "review": "Review before submit",
+                "dry_run": "Practice only (no submit)",
+                "autonomous": "Submit automatically",
+            }[mode],
+            captions=["Recommended — pause so you can check each application.", "Fill forms and take screenshots without submitting.", "Submits applications without pausing."],
             horizontal=True
         )
     with c2:
-        max_apps = st.number_input("Max Apps per Run", min_value=1, max_value=20, value=5)
+        max_apps = st.number_input("How many applications?", min_value=1, max_value=20, value=3)
     with c3:
-        min_match = st.number_input("Min Match Score %", min_value=0, max_value=100, value=70)
+        min_match = st.number_input("Only include matches above", min_value=0, max_value=100, value=70)
 
-    run_btn = st.button("⚡ RUN ONE-TOUCH AUTO-APPLY", type="primary", use_container_width=True)
+    run_btn = st.button("Start my guided application review", type="primary", use_container_width=True)
 
     if run_btn:
         progress_bar = st.progress(0.0)
@@ -79,7 +95,7 @@ with st.container(border=True):
 st.divider()
 
 # Sidebar Metrics
-st.sidebar.header("📊 System Stats")
+st.sidebar.header("Your progress")
 stats = db.get_stats()
 st.sidebar.metric("Total Discovered", stats.get("TOTAL", 0))
 st.sidebar.metric("Matched Jobs", stats.get("MATCHED", 0))
@@ -87,30 +103,31 @@ st.sidebar.metric("Applied Count", stats.get("APPLIED", 0))
 st.sidebar.metric("Failed / Rejected", stats.get("FAILED", 0) + stats.get("REJECTED", 0))
 
 st.sidebar.divider()
-st.sidebar.header("🔧 Step Controls")
-if st.sidebar.button("1. Discover Jobs", use_container_width=True):
+st.sidebar.header("Next steps")
+if st.sidebar.button("1. Find jobs", use_container_width=True):
     with st.spinner("Scraping ATS boards & APIs..."):
         run_discover(db, criteria)
     st.sidebar.success("Discovery completed!")
     st.rerun()
 
-if st.sidebar.button("2. Evaluate & Score", use_container_width=True):
+if st.sidebar.button("2. Score my matches", use_container_width=True):
     with st.spinner("Evaluating match scores..."):
         run_evaluate(db, criteria, profile)
     st.sidebar.success("Evaluation completed!")
     st.rerun()
 
-if st.sidebar.button("3. Run Auto-Applier", use_container_width=True):
+if st.sidebar.button("3. Review applications", use_container_width=True):
     with st.spinner("Running Applier..."):
         run_apply(db, profile, mode=one_touch_mode, limit=max_apps)
     st.sidebar.success("Applier run finished!")
     st.rerun()
 
 # Main Navigation Tabs
-tab1, tab2, tab3 = st.tabs(["📋 Job Feed & Matches", "📷 Application Logs & Proof", "👤 User Profile & Resume Setup"])
+tab_setup, tab_jobs, tab_activity = st.tabs(["1. Set up my search", "2. Find jobs", "3. My activity"])
 
-with tab1:
-    st.subheader("Discovered & Matched Jobs")
+with tab_jobs:
+    st.subheader("Your job matches")
+    st.caption("First click **Find jobs**, then **Score my matches** in the sidebar.")
     col1, col2 = st.columns(2)
     with col1:
         status_filter = st.selectbox("Status Filter", ["ALL", "DISCOVERED", "MATCHED", "APPLIED", "REJECTED", "FAILED"])
@@ -140,8 +157,8 @@ with tab1:
             use_container_width=True
         )
 
-with tab2:
-    st.subheader("Application Logs & Proof Screenshots")
+with tab_activity:
+    st.subheader("Your application activity")
     all_jobs = db.get_jobs()
     if not all_jobs:
         st.info("No application history available.")
@@ -162,12 +179,12 @@ with tab2:
             if log.get("screenshot_path") and os.path.exists(log["screenshot_path"]):
                 st.image(log["screenshot_path"], caption=f"Screenshot Proof: {log['step']}", use_container_width=True)
 
-with tab3:
-    st.subheader("👤 Candidate Onboarding & Universal Setup")
-    st.markdown("Fill in your candidate details, job criteria, and upload your resume. Any user can set up their profile here!")
+with tab_setup:
+    st.subheader("Tell us what you are looking for")
+    st.markdown("Complete this once, then move to **Find jobs**. Use sample details in this public preview.")
 
     with st.form("onboarding_form"):
-        st.markdown("#### 1. Candidate Contact Information")
+        st.markdown("#### About you")
         col_p1, col_p2 = st.columns(2)
         with col_p1:
             fn = st.text_input("First Name", value=profile.get("first_name", ""))
@@ -180,7 +197,7 @@ with tab3:
             github = st.text_input("GitHub Profile URL", value=profile.get("github_url", ""))
             portfolio = st.text_input("Portfolio / Website URL", value=profile.get("portfolio_url", ""))
 
-        st.markdown("#### 2. Job Search Criteria")
+        st.markdown("#### What kind of job do you want?")
         col_c1, col_c2 = st.columns(2)
         with col_c1:
             titles_input = st.text_input("Target Job Titles (comma separated)", value=", ".join(criteria.get("job_titles", [])))
@@ -191,10 +208,10 @@ with tab3:
             keywords_inc = st.text_input("Keywords to Include (comma separated)", value=", ".join(criteria.get("keywords_include", [])))
             keywords_exc = st.text_input("Keywords to Exclude (comma separated)", value=", ".join(criteria.get("keywords_exclude", [])))
 
-        st.markdown("#### 3. Resume Upload")
+        st.markdown("#### Resume")
         uploaded_file = st.file_uploader("Upload Resume (PDF, DOCX, or TXT)", type=["pdf", "docx", "txt"])
 
-        submit_setup = st.form_submit_button("💾 Save Profile & Update Criteria", type="primary", use_container_width=True)
+        submit_setup = st.form_submit_button("Save and find jobs", type="primary", use_container_width=True)
 
         if submit_setup:
             # Handle uploaded resume file
@@ -248,7 +265,7 @@ with tab3:
             with open(CRITERIA_PATH, "w") as f:
                 json.dump(updated_criteria, f, indent=2)
 
-            st.success("✅ Profile, Criteria, and Resume successfully saved and updated!")
+            st.success("Saved. Next, open **Find jobs** and click **Find jobs** in the sidebar.")
             st.rerun()
 
     st.divider()
