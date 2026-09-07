@@ -267,11 +267,3 @@ with tab_setup:
 
             st.success("Saved. Next, open **Find jobs** and click **Find jobs** in the sidebar.")
             st.rerun()
-
-    st.divider()
-    with st.expander("🔧 Raw JSON Configuration Editors"):
-        raw_c1, raw_c2 = st.columns(2)
-        with raw_c1:
-            st.json(criteria)
-        with raw_c2:
-            st.json(profile)
