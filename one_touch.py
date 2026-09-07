@@ -43,6 +43,7 @@ def execute_one_touch(mode: str = "dry_run", limit: int = 5, min_score: float = 
         "discovered": 0,
         "matched": 0,
         "applied": 0,
+        "needs_confirmation": 0,
         "failed": 0,
         "jobs_applied": []
     }
@@ -108,13 +109,18 @@ def execute_one_touch(mode: str = "dry_run", limit: int = 5, min_score: float = 
             success = lever_applier.apply(j)
         
         if success:
-            summary["applied"] += 1
+            current_status = db.get_job_by_id(j["id"])["status"]
+            if current_status == "APPLIED":
+                summary["applied"] += 1
+            else:
+                summary["needs_confirmation"] += 1
             summary["jobs_applied"].append({
                 "id": j["id"],
                 "title": j["title"],
                 "company": j["company"],
                 "score": j["match_score"],
-                "url": j["url"]
+                "url": j["url"],
+                "status": current_status,
             })
         else:
             summary["failed"] += 1

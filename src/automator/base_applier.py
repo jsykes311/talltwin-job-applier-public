@@ -36,3 +36,16 @@ class BaseApplier(ABC):
         except Exception as e:
             print(f"Failed to capture screenshot: {e}")
         return path
+
+    def submission_confirmed(self, page) -> bool:
+        """Return True only when the application site visibly confirms receipt."""
+        try:
+            page_text = page.locator("body").inner_text(timeout=5000).lower()
+        except Exception:
+            return False
+        confirmations = (
+            "application submitted", "application received", "thanks for applying",
+            "thank you for applying", "thank you for your application",
+            "we received your application",
+        )
+        return any(message in page_text for message in confirmations)

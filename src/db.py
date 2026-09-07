@@ -32,7 +32,7 @@ class Database:
                     description TEXT,
                     match_score REAL DEFAULT 0.0,
                     match_reason TEXT,
-                    status TEXT DEFAULT 'DISCOVERED', -- DISCOVERED, MATCHED, REJECTED, APPLYING, APPLIED, FAILED
+                    status TEXT DEFAULT 'DISCOVERED', -- DISCOVERED, MATCHED, REVIEW_READY, SUBMISSION_UNCONFIRMED, REJECTED, APPLYING, APPLIED, FAILED
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     applied_at TIMESTAMP
@@ -51,6 +51,18 @@ class Database:
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (job_id) REFERENCES jobs (id) ON DELETE CASCADE
                 )
+            """)
+            # Older builds marked review/form-fill work as APPLIED. Keep actual
+            # recorded submissions intact, but make ambiguous records honest.
+            cursor.execute("""
+                UPDATE jobs
+                SET status = 'SUBMISSION_UNCONFIRMED', updated_at = CURRENT_TIMESTAMP
+                WHERE status = 'APPLIED'
+                  AND NOT EXISTS (
+                    SELECT 1 FROM application_logs
+                    WHERE application_logs.job_id = jobs.id
+                      AND application_logs.step = 'SUBMITTED'
+                  )
             """)
             conn.commit()
 
@@ -146,6 +158,8 @@ class Database:
             stats = {
                 "DISCOVERED": 0,
                 "MATCHED": 0,
+                "REVIEW_READY": 0,
+                "SUBMISSION_UNCONFIRMED": 0,
                 "REJECTED": 0,
                 "APPLYING": 0,
                 "APPLIED": 0,

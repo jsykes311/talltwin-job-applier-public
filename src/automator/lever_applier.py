@@ -71,9 +71,8 @@ class LeverApplier(BaseApplier):
                     return True
 
                 elif self.mode == "review":
-                    self.db.log_step(job_id, "REVIEW", "[Review Mode] Pausing for user manual review & submit in browser.")
-                    page.pause()
-                    self.db.update_job_status(job_id, "APPLIED")
+                    self.db.log_step(job_id, "REVIEW_READY", "[Review Mode] Form prepared; submission requires your confirmation.")
+                    self.db.update_job_status(job_id, "REVIEW_READY")
                     browser.close()
                     return True
 
@@ -82,9 +81,13 @@ class LeverApplier(BaseApplier):
                     if submit_btn:
                         submit_btn.click()
                         page.wait_for_timeout(3000)
-                        final_shot = self.capture_screenshot(page, job_id, "submitted")
-                        self.db.log_step(job_id, "SUBMITTED", "Application submitted automatically", screenshot_path=final_shot)
-                        self.db.update_job_status(job_id, "APPLIED")
+                        final_shot = self.capture_screenshot(page, job_id, "submission_result")
+                        if self.submission_confirmed(page):
+                            self.db.log_step(job_id, "SUBMITTED", "Application receipt confirmation detected.", screenshot_path=final_shot)
+                            self.db.update_job_status(job_id, "APPLIED")
+                        else:
+                            self.db.log_step(job_id, "SUBMISSION_UNCONFIRMED", "Submit was clicked, but no receipt confirmation was detected.", log_level="WARNING", screenshot_path=final_shot)
+                            self.db.update_job_status(job_id, "SUBMISSION_UNCONFIRMED")
                         browser.close()
                         return True
                     else:

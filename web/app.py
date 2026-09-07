@@ -83,12 +83,12 @@ with st.container(border=True):
         )
 
         st.balloons()
-        st.success(f"🎉 One-Touch Run Complete! Processed {summary['applied']} job applications in [{one_touch_mode.upper()}] mode.")
+        st.success(f"Run complete. Confirmed submissions: {summary['applied']}. Needs review or confirmation: {summary['needs_confirmation']}.")
         
         if summary["jobs_applied"]:
-            with st.expander("📋 View Applied Jobs Summary", expanded=True):
+            with st.expander("📋 View job processing summary", expanded=True):
                 for j in summary["jobs_applied"]:
-                    st.write(f"• **{j['title']}** @ **{j['company']}** (Match Score: `{j['score']:.1f}%`) — [Application Link]({j['url']})")
+                    st.write(f"• **{j['title']}** @ **{j['company']}** — `{j['status'].replace('_', ' ').title()}` (Match Score: `{j['score']:.1f}%`) — [Application Link]({j['url']})")
 
         st.rerun()
 
@@ -98,9 +98,11 @@ st.divider()
 st.sidebar.header("Your progress")
 stats = db.get_stats()
 st.sidebar.metric("Total Discovered", stats.get("TOTAL", 0))
-st.sidebar.metric("Matched Jobs", stats.get("MATCHED", 0))
-st.sidebar.metric("Applied Count", stats.get("APPLIED", 0))
-st.sidebar.metric("Failed / Rejected", stats.get("FAILED", 0) + stats.get("REJECTED", 0))
+st.sidebar.metric("Ready to review", stats.get("MATCHED", 0) + stats.get("REVIEW_READY", 0))
+st.sidebar.metric("Confirmed submissions", stats.get("APPLIED", 0))
+st.sidebar.metric("Needs confirmation", stats.get("SUBMISSION_UNCONFIRMED", 0))
+st.sidebar.metric("Not a match", stats.get("REJECTED", 0))
+st.sidebar.metric("Technical failures", stats.get("FAILED", 0))
 
 st.sidebar.divider()
 st.sidebar.header("Next steps")
@@ -130,7 +132,7 @@ with tab_jobs:
     st.caption("First click **Find jobs**, then **Score my matches** in the sidebar.")
     col1, col2 = st.columns(2)
     with col1:
-        status_filter = st.selectbox("Status Filter", ["ALL", "DISCOVERED", "MATCHED", "APPLIED", "REJECTED", "FAILED"])
+        status_filter = st.selectbox("Status Filter", ["ALL", "DISCOVERED", "MATCHED", "REVIEW_READY", "SUBMISSION_UNCONFIRMED", "APPLIED", "REJECTED", "FAILED"])
     with col2:
         min_score_filter = st.slider("Filter by Min Match Score", 0, 100, 50)
 
