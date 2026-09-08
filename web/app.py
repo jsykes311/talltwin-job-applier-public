@@ -9,7 +9,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from src.db import Database
 from src.cli import run_discover, run_evaluate, load_json
 from src.resume_parser import ResumeParser
-from one_touch import execute_one_touch
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 CRITERIA_PATH = os.path.join(BASE_DIR, "config", "criteria.json")
@@ -65,54 +64,22 @@ st.warning(
     "Do not upload a real resume or sensitive contact details here."
 )
 
-# Top One-Touch Action Banner
+# Search first. Selection and official-form review happen below.
 with st.container(border=True):
-    st.subheader("Find roles worth your time")
-    c1, c2, c3 = st.columns([2, 1, 1])
+    st.subheader("1. Search for verified roles")
+    c1, c2 = st.columns([3, 1])
     
     with c1:
-        st.markdown("Choose **Review before submit** for your first run. Real opportunities, clear status, no fake submission claims.")
-        one_touch_mode = st.radio(
-            "How should applications be handled?",
-            ["review", "dry_run", "autonomous"],
-            format_func=lambda mode: {
-                "review": "Review before submit",
-                "dry_run": "Practice only (no submit)",
-                "autonomous": "Submit automatically",
-            }[mode],
-            captions=["Recommended — pause so you can check each application.", "Fill forms and take screenshots without submitting.", "Submits applications without pausing."],
-            horizontal=True
-        )
+        st.markdown("We search and score first. Then you choose **all** or only the roles you want to prepare for review.")
+        min_match = st.slider("Minimum match score", min_value=50, max_value=100, value=70)
     with c2:
-        max_apps = st.number_input("How many applications?", min_value=1, max_value=20, value=3)
-    with c3:
-        min_match = st.number_input("Only include matches above", min_value=0, max_value=100, value=70)
-
-    run_btn = st.button("Find verified jobs", type="primary", use_container_width=True)
+        run_btn = st.button("Search jobs", type="primary", use_container_width=True)
 
     if run_btn:
-        progress_bar = st.progress(0.0)
-        status_text = st.empty()
-
-        def update_progress(msg: str, val: float):
-            status_text.info(msg)
-            progress_bar.progress(val)
-
-        summary = execute_one_touch(
-            mode=one_touch_mode,
-            limit=max_apps,
-            min_score=min_match,
-            progress_callback=update_progress
-        )
-
-        st.balloons()
-        st.success(f"Run complete. Confirmed submissions: {summary['applied']}. Needs review or confirmation: {summary['needs_confirmation']}.")
-        
-        if summary["jobs_applied"]:
-            with st.expander("📋 View job processing summary", expanded=True):
-                for j in summary["jobs_applied"]:
-                    st.write(f"• **{j['title']}** @ **{j['company']}** — `{j['status'].replace('_', ' ').title()}` (Match Score: `{j['score']:.1f}%`) — [Application Link]({j['url']})")
-
+        with st.spinner("Finding and scoring verified roles..."):
+            run_discover(db, criteria)
+            run_evaluate(db, criteria, profile)
+        st.success("Results are ready below. Pick the roles you want to prepare.")
         st.rerun()
 
 st.divider()
@@ -153,8 +120,36 @@ tab_activity = st.container()
 tab_setup = st.container()
 
 with tab_jobs:
-    st.subheader("Review your applications")
-    st.caption("Review the role and open its official application before you submit anything.")
+    st.subheader("2. Choose roles to prepare")
+    st.caption("Select individual roles, or queue every current match. This prepares a review queue—it does not submit applications.")
+    matching_jobs = [j for j in db.get_jobs(status="MATCHED", min_score=min_match)]
+    selected_job_ids = []
+    if matching_jobs:
+        for job in matching_jobs:
+            selected = st.checkbox(f"{job['title']} · {job['company']} · {job['match_score']:.0f}% match", key=f"choose_job_{job['id']}")
+            if selected:
+                selected_job_ids.append(job["id"])
+        choose_one, choose_all = st.columns(2)
+        with choose_one:
+            prepare_selected = st.button(f"Prepare selected ({len(selected_job_ids)})", type="primary", use_container_width=True)
+        with choose_all:
+            prepare_all = st.button(f"Prepare all matches ({len(matching_jobs)})", use_container_width=True)
+        chosen_ids = [j["id"] for j in matching_jobs] if prepare_all else selected_job_ids
+        if prepare_selected or prepare_all:
+            if not chosen_ids:
+                st.warning("Choose at least one role first.")
+            else:
+                for job_id in chosen_ids:
+                    db.update_job_status(job_id, "REVIEW_READY")
+                    db.log_step(job_id, "REVIEW_QUEUE", "Queued for your review before any submission.")
+                st.success(f"{len(chosen_ids)} role(s) moved to your review queue.")
+                st.rerun()
+    else:
+        st.info("Search jobs above to see matching roles here.")
+
+    st.divider()
+    st.subheader("3. Review prepared applications")
+    st.caption("Open the official form only after you review the role. No slow browser run here.")
     review_jobs = [j for j in db.get_jobs() if j["status"] in ("MATCHED", "REVIEW_READY", "SUBMISSION_UNCONFIRMED")]
     if review_jobs:
         for job in review_jobs[:10]:
