@@ -7,7 +7,7 @@ import streamlit as st
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from src.db import Database
-from src.cli import run_discover, run_evaluate, run_apply, load_json
+from src.cli import run_discover, run_evaluate, load_json
 from src.resume_parser import ResumeParser
 from one_touch import execute_one_touch
 
@@ -141,18 +141,34 @@ if st.sidebar.button("2. Score my matches", use_container_width=True):
     st.sidebar.success("Evaluation completed!")
     st.rerun()
 
-if st.sidebar.button("3. Review applications", use_container_width=True):
-    with st.spinner("Running Applier..."):
-        run_apply(db, profile, mode=one_touch_mode, limit=max_apps)
-    st.sidebar.success("Applier run finished!")
-    st.rerun()
+st.sidebar.markdown("### 3. Review applications")
+st.sidebar.caption("Open the official form only after you review the role. No slow browser run here.")
+st.sidebar.markdown("[Open my review queue](#review-queue)")
 
-# Main Navigation Tabs
-tab_setup, tab_jobs, tab_activity = st.tabs(["1. Set up my search", "2. Find jobs", "3. My activity"])
+# One-page command center: profile, queue, and activity stay visible in one
+# continuous workflow instead of hiding review work behind a tab.
+st.markdown("<div id='review-queue'></div>", unsafe_allow_html=True)
+tab_jobs = st.container()
+tab_activity = st.container()
+tab_setup = st.container()
 
 with tab_jobs:
-    st.subheader("Your job matches")
+    st.subheader("Review your applications")
     st.caption("Review the role and open its official application before you submit anything.")
+    review_jobs = [j for j in db.get_jobs() if j["status"] in ("MATCHED", "REVIEW_READY", "SUBMISSION_UNCONFIRMED")]
+    if review_jobs:
+        for job in review_jobs[:10]:
+            with st.container(border=True):
+                queue_main, queue_action = st.columns([5, 1])
+                with queue_main:
+                    st.markdown(f"**{job['title']}** · {job['company']}  ")
+                    st.caption(f"{job['status'].replace('_', ' ').title()} · {job['match_score']:.0f}% match · {job['match_reason'] or 'Review the job details before applying.'}")
+                with queue_action:
+                    st.link_button("Open role", job["url"], use_container_width=True)
+    else:
+        st.info("No roles are waiting for your review yet. Find and score jobs above, then they will appear here.")
+
+    st.markdown("#### Browse all roles")
     col1, col2 = st.columns(2)
     with col1:
         status_filter = st.selectbox("Status Filter", ["ALL", "DISCOVERED", "MATCHED", "REVIEW_READY", "SUBMISSION_UNCONFIRMED", "APPLIED", "REJECTED", "FAILED"])
@@ -165,18 +181,6 @@ with tab_jobs:
     if not jobs:
         st.info("No jobs found matching the selected filters.")
     else:
-        review_jobs = [j for j in jobs if j["status"] in ("MATCHED", "REVIEW_READY", "SUBMISSION_UNCONFIRMED")]
-        if review_jobs:
-            st.markdown("#### Your review queue")
-            for job in review_jobs[:5]:
-                with st.container(border=True):
-                    queue_main, queue_action = st.columns([5, 1])
-                    with queue_main:
-                        st.markdown(f"**{job['title']}** · {job['company']}  ")
-                        st.caption(f"{job['status'].replace('_', ' ').title()} · {job['match_score']:.0f}% match · {job['match_reason'] or 'Review the job details before applying.'}")
-                    with queue_action:
-                        st.link_button("Open role", job["url"], use_container_width=True)
-        st.markdown("#### All roles")
         st.dataframe(
             [{
                 "ID": j["id"],
